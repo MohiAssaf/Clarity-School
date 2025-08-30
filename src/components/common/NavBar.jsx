@@ -2,9 +2,9 @@ import {
   FaHome,
   FaChalkboardTeacher,
   FaCalendarAlt,
-  FaChartBar,
+  FaBookOpen,
 } from "react-icons/fa";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 
 const Navbar = () => {
   return (
@@ -37,6 +37,19 @@ const Navbar = () => {
           >
             <FaChalkboardTeacher className="mr-3 text-lg" />
             Teachers
+          </NavLink>
+        </li>
+        <li className="w-full">
+          <NavLink
+            to="/subjects"
+            className={({ isActive }) =>
+              `flex items-center p-3 rounded-lg transition-colors duration-200 text-gray-700 font-medium ${
+                isActive ? "bg-blue-100 text-blue-800" : "hover:bg-gray-100"
+              }`
+            }
+          >
+            <FaBookOpen className="mr-3 text-lg" />
+            Subjects
           </NavLink>
         </li>
         <li className="w-full">
