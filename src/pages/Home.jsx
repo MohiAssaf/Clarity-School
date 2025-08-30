@@ -1,10 +1,12 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import HeroIcons from "../components/home/HeroIcons";
-import FeatureCard from "../components/home/FeatureCard";
+import HeroIcons from "@/components/home/HeroIcons";
+import FeatureCard from "@/components/home/FeatureCard";
 import { FaCalendarPlus, FaChartLine, FaUsers } from "react-icons/fa";
+import { useQuestionnaire } from "@/context/QuestionnaireContext";
 
 const Home = () => {
+  const { quesData } = useQuestionnaire();
   const navigate = useNavigate();
 
   const featureListVariants = {
@@ -30,12 +32,14 @@ const Home = () => {
           <div className="text-2xl sm:text-3xl font-extrabold text-blue-900">
             Clarity School
           </div>
+
           <motion.button
-            onClick={() => navigate("/dashboard")}
-            className="px-4 py-2 sm:px-6 sm:py-2 rounded-full text-blue-900 font-semibold border-2 border-blue-900 hover:bg-blue-900 hover:text-white transition-all duration-300 transform hover:scale-105"
-            whileHover={{ scale: 1.1 }}
+            onClick={() => navigate(quesData ? "/dashboard" : "questionnaire")}
+            className="rounded-full bg-gradient-to-r from-blue-700 to-indigo-800 px-8 py-2 text-lg font-semibold text-white shadow-lg cursor-pointer transition-all duration-300 hover:from-blue-800 hover:to-indigo-900 transform hover:scale-105"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Dashboard
+            {quesData ? "Dashboard" : "Get Started"}
           </motion.button>
         </motion.header>
 
@@ -62,23 +66,6 @@ const Home = () => {
             A seamless solution for administrators to generate, manage, and
             analyze class schedules with ease and precision.
           </motion.p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-            <motion.button
-              onClick={() => navigate("/dashboard")}
-              className="rounded-full bg-gradient-to-r from-blue-700 to-indigo-800 px-8 py-4 text-lg font-semibold text-white shadow-lg cursor-pointer transition-all duration-300 hover:from-blue-800 hover:to-indigo-900 transform hover:scale-105"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Get Started
-            </motion.button>
-            <motion.a
-              href="#"
-              className="text-lg font-semibold leading-6 text-gray-900 hover:text-blue-600 transition-colors duration-300"
-              whileHover={{ scale: 1.05 }}
-            >
-              Learn more <span aria-hidden="true">→</span>
-            </motion.a>
-          </div>
         </motion.div>
 
         <section className="bg-white py-16 sm:py-24">
