@@ -9,8 +9,8 @@ import { NavLink } from "react-router";
 const Navbar = () => {
   return (
     <nav className="bg-white shadow-lg w-64 h-screen fixed top-0 left-0 p-4 flex flex-col items-center">
-      <div className="text-2xl font-extrabold text-blue-900 mb-10 mt-2">
-        Clarity School
+      <div className="text-2xl font-extrabold text-blue-900 mb-10 mt-2 cursor-pointer">
+        <NavLink to="/">Clarity School</NavLink>
       </div>
       <ul className="w-full space-y-2">
         <li className="w-full">
