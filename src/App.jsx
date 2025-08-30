@@ -8,11 +8,23 @@ import Subjects from "@/pages/Subjects";
 import RequireQues from "@/routes/RequireQues";
 import Questionnaire from "@/pages/Questionnaire";
 import { QuestionnaireProvider } from "@/context/QuestionnaireContext";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
     <QuestionnaireProvider>
       <Router>
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/questionnaire" element={<Questionnaire />} />

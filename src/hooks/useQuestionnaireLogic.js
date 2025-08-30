@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuestionnaire } from "@/context/QuestionnaireContext";
+import { toast } from "react-toastify";
 
 const allDays = [
   "Monday",
@@ -52,12 +53,12 @@ const useQuestionnaireLogic = () => {
 
   const handleComplete = () => {
     if (daysOfWeek.length === 0) {
-      alert("Please select at least one teaching day.");
+      toast.error("Please select at least one working day.");
       return;
     }
     for (const day of daysOfWeek) {
       if (!periodsPerDay[day] || periodsPerDay[day] <= 0) {
-        alert(`Please specify a valid number of periods for ${day}.`);
+        toast.error(`Please specify a valid number of periods for ${day}.`);
         return;
       }
     }
@@ -66,6 +67,7 @@ const useQuestionnaireLogic = () => {
 
     completeQuestionnaire(data);
     navigate("/dashboard");
+    toast.success("Successfully completed Questionnaire!");
   };
 
   return {
