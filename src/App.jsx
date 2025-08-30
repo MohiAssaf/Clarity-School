@@ -5,8 +5,9 @@ import Schedules from "@/pages/Schedules";
 import NotFound from "@/pages/NotFound";
 import Home from "@/pages/Home";
 import Subjects from "@/pages/Subjects";
-import RequireQues from "./routes/RequireQues";
-import { QuestionnaireProvider } from "./context/QuestionnaireContext";
+import RequireQues from "@/routes/RequireQues";
+import Questionnaire from "@/pages/Questionnaire";
+import { QuestionnaireProvider } from "@/context/QuestionnaireContext";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/questionnaire" element={<Questionnaire />} />
 
           <Route element={<RequireQues />}>
             <Route path="/dashboard" element={<Dashboard />} />

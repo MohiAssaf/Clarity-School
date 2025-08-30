@@ -1,0 +1,86 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuestionnaire } from "@/context/QuestionnaireContext";
+
+const allDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const useQuestionnaireLogic = () => {
+  const navigate = useNavigate();
+  const { completeQuestionnaire } = useQuestionnaire();
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const [gradesCount, setGradesCount] = useState(1);
+  const [daysOfWeek, setDaysOfWeek] = useState([
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+  ]);
+  const [periodsPerDay, setPeriodsPerDay] = useState({});
+
+  const toggleDay = (day) => {
+    setDaysOfWeek((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+    if (daysOfWeek.includes(day)) {
+      setPeriodsPerDay((prev) => {
+        const copy = { ...prev };
+        delete copy[day];
+        return copy;
+      });
+    }
+  };
+
+  const handlePeriodChange = (day, value) => {
+    setPeriodsPerDay((prev) => ({
+      ...prev,
+      [day]: parseInt(value) || 0,
+    }));
+  };
+
+  const handleNext = () => setCurrentStep((prev) => prev + 1);
+  const handleBack = () => setCurrentStep((prev) => prev - 1);
+
+  const handleComplete = () => {
+    if (daysOfWeek.length === 0) {
+      alert("Please select at least one teaching day.");
+      return;
+    }
+    for (const day of daysOfWeek) {
+      if (!periodsPerDay[day] || periodsPerDay[day] <= 0) {
+        alert(`Please specify a valid number of periods for ${day}.`);
+        return;
+      }
+    }
+
+    const data = { gradesCount, daysOfWeek, periodsPerDay };
+
+    completeQuestionnaire(data);
+    navigate("/dashboard");
+  };
+
+  return {
+    currentStep,
+    gradesCount,
+    setGradesCount,
+    daysOfWeek,
+    toggleDay,
+    periodsPerDay,
+    handlePeriodChange,
+    handleNext,
+    handleBack,
+    handleComplete,
+    allDays,
+  };
+};
+
+export default useQuestionnaireLogic;
