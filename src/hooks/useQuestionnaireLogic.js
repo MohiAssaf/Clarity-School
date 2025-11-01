@@ -63,7 +63,12 @@ const useQuestionnaireLogic = () => {
       }
     }
 
-    const data = { gradesCount, daysOfWeek, periodsPerDay };
+    const totalPeriodsPerWeek = Object.values(periodsPerDay).reduce(
+      (a, b) => a + b,
+      0
+    );
+    const totalClassSlots = gradesCount * totalPeriodsPerWeek;
+    const data = { gradesCount, daysOfWeek, periodsPerDay, totalClassSlots };
 
     completeQuestionnaire(data);
     navigate("/dashboard");
