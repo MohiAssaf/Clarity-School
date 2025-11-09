@@ -1,16 +1,23 @@
 import { useState, useMemo } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { FaPlus, FaSearch } from "react-icons/fa";
-import { AnimatePresence } from "framer-motion";
-import Layout from "../components/common/Layout";
-import TeacherCard from "../components/teachers/TeacherCard";
-import { selectTeachers } from "../features/teachers/teachersSlice";
-import AddTeacher from "../components/teachers/AddTeacher";
+import Layout from "@/components/common/Layout";
+import TeacherCard from "@/components/teachers/TeacherCard";
+import {
+  removeTeacher,
+  selectTeachers,
+} from "@/features/teachers/teachersSlice";
+import AddEditTeacher from "@/components/teachers/AddEditTeacher";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import { toast } from "react-toastify";
 
 const Teachers = () => {
+  const dispatch = useDispatch();
   const teachers = useSelector(selectTeachers);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddTeacher, setShowAddTeacher] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState(null);
+  const [teacherToEdit, setTeacherToEdit] = useState(null);
 
   const filteredTeachers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -45,16 +52,49 @@ const Teachers = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredTeachers.map((teacher) => (
-            <TeacherCard key={teacher.id} teacher={teacher} />
+            <TeacherCard
+              key={teacher.id}
+              teacher={teacher}
+              onEditTeacher={(teacherObj) => {
+                setTeacherToEdit(teacherObj);
+              }}
+              onDeleteTeacher={(teacherObj) => {
+                setTeacherToDelete(teacherObj);
+              }}
+            />
           ))}
         </div>
       </Layout>
 
-      <AnimatePresence>
-        {showAddTeacher && (
-          <AddTeacher onClose={() => setShowAddTeacher(false)} />
-        )}
-      </AnimatePresence>
+      {(showAddTeacher || teacherToEdit) && (
+        <AddEditTeacher
+          onClose={() => {
+            setShowAddTeacher(false);
+            setTeacherToEdit(null);
+          }}
+          isEdit={!!teacherToEdit}
+          teacher={teacherToEdit}
+        />
+      )}
+
+      {teacherToDelete && (
+        <ConfirmDeleteModal
+          title="Delete Teacher?"
+          message={
+            teacherToDelete
+              ? `Are you sure you want to delete ${teacherToDelete.name}? This action cannot be undone.`
+              : ""
+          }
+          onCancel={() => {
+            setTeacherToDelete(null);
+          }}
+          onConfirm={() => {
+            dispatch(removeTeacher(teacherToDelete.id));
+            toast.success(`Teacher ${teacherToDelete.name} removed`);
+            setTeacherToDelete(null);
+          }}
+        />
+      )}
     </>
   );
 };
