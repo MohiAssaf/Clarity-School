@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addTeacher } from "@/features/teachers/teachersSlice";
 import { selectSubjects } from "@/features/subjects/subjectsSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus, FaTimes } from "react-icons/fa";
 import { useQuestionnaire } from "@/context/QuestionnaireContext";
+import { editTeacher } from "@/features/teachers/teachersSlice";
+import { toast } from "react-toastify";
 
-const AddTeacher = ({ onClose }) => {
+const AddEditTeacher = ({ onClose, isEdit, teacher }) => {
   const { quesData } = useQuestionnaire();
   const dispatch = useDispatch();
   const subjects = useSelector(selectSubjects);
@@ -18,6 +20,24 @@ const AddTeacher = ({ onClose }) => {
     availability: "flexible",
     assignments: [],
   });
+
+  useEffect(() => {
+    if (isEdit && teacher) {
+      setForm({
+        name: teacher.name || "",
+        email: teacher.email || "",
+        imageUrl: teacher.imageUrl || "",
+        availability: teacher.availability || "flexible",
+        assignments: teacher.assignments
+          ? teacher.assignments.map((a) => ({
+              grade: a.grade || "",
+              subject: a.subject || "",
+              frequency: a.frequency || "",
+            }))
+          : [],
+      });
+    }
+  }, [isEdit, teacher]);
 
   const handleAddAssignment = () => {
     setForm((prev) => ({
@@ -42,7 +62,15 @@ const AddTeacher = ({ onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(addTeacher(form));
+
+    if (isEdit) {
+      dispatch(editTeacher({ id: teacher.id, updatedData: form }));
+      toast.success(`Teacher ${form.name} updated`);
+    } else {
+      dispatch(addTeacher(form));
+      toast.success(`Teacher ${form.name} added`);
+    }
+
     onClose();
   };
 
@@ -66,11 +94,11 @@ const AddTeacher = ({ onClose }) => {
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl font-bold text-gray-800">
-              Add New Teacher 👩‍🏫
+              {isEdit ? "Edit Teacher ✏️" : "Add New Teacher 👩‍🏫"}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
+              className="cursor-pointer text-gray-500 hover:text-gray-700 transition-colors"
             >
               <FaTimes size={24} />
             </button>
@@ -196,7 +224,7 @@ const AddTeacher = ({ onClose }) => {
                     <button
                       type="button"
                       onClick={() => handleRemoveAssignment(idx)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
+                      className="cursor-pointer text-red-500 hover:text-red-700 transition-colors"
                       aria-label="Remove assignment"
                     >
                       <FaTimes />
@@ -207,7 +235,7 @@ const AddTeacher = ({ onClose }) => {
               <button
                 type="button"
                 onClick={handleAddAssignment}
-                className="flex items-center justify-center w-full px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium hover:bg-blue-100 transition-colors mt-2"
+                className="cursor-pointer flex items-center justify-center w-full px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium hover:bg-blue-100 transition-colors mt-2"
               >
                 <FaPlus className="mr-2" /> Add Assignment
               </button>
@@ -217,15 +245,15 @@ const AddTeacher = ({ onClose }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                className="cursor-pointer px-6 py-3 text-gray-700 font-medium rounded-lg border-2 border-blue-600 hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+                className="cursor-pointer px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
               >
-                Save Teacher
+                {isEdit ? "Save Changes" : "Save Teacher"}
               </button>
             </div>
           </form>
@@ -235,4 +263,4 @@ const AddTeacher = ({ onClose }) => {
   );
 };
 
-export default AddTeacher;
+export default AddEditTeacher;
