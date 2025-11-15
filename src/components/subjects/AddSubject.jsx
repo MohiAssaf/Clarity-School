@@ -2,13 +2,24 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addSubject } from "@/features/subjects/subjectsSlice";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
-const AddSubject = ({ onClose }) => {
+const AddSubject = ({ onClose, existingSubjects }) => {
   const dispatch = useDispatch();
   const [form, setForm] = useState({ name: "", description: "" });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const alreadyExists = existingSubjects.some(
+      (subject) => subject.name.toLowerCase() === form.name.trim().toLowerCase()
+    );
+
+    if (alreadyExists) {
+      toast.warn("This subject already exists!");
+      onClose();
+      return;
+    }
     dispatch(addSubject(form));
     onClose();
   };

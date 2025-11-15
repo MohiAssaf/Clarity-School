@@ -63,7 +63,10 @@ const Subjects = () => {
 
       <AnimatePresence>
         {showAddSubject && (
-          <AddSubject onClose={() => setShowAddSubject(false)} />
+          <AddSubject
+            onClose={() => setShowAddSubject(false)}
+            existingSubjects={subjects}
+          />
         )}
       </AnimatePresence>
 
