@@ -80,11 +80,7 @@ const Teachers = () => {
       {teacherToDelete && (
         <ConfirmDeleteModal
           title="Delete Teacher?"
-          message={
-            teacherToDelete
-              ? `Are you sure you want to delete ${teacherToDelete.name}? This action cannot be undone.`
-              : ""
-          }
+          message={`Are you sure you want to delete ${teacherToDelete.name}? This action cannot be undone.`}
           onCancel={() => {
             setTeacherToDelete(null);
           }}
