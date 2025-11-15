@@ -1,16 +1,23 @@
 import { useState, useMemo } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { FaPlus, FaSearch } from "react-icons/fa";
 import { AnimatePresence } from "framer-motion";
 import Layout from "@/components/common/Layout";
-import { selectSubjects } from "@/features/subjects/subjectsSlice";
+import {
+  removeSubject,
+  selectSubjects,
+} from "@/features/subjects/subjectsSlice";
 import AddSubject from "@/components/subjects/AddSubject";
 import SubjectCard from "@/components/subjects/SubjectCard";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
+import { toast } from "react-toastify";
 
 const Subjects = () => {
+  const dispatch = useDispatch();
   const subjects = useSelector(selectSubjects);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddSubject, setShowAddSubject] = useState(false);
+  const [subjectToDel, setSubjectToDel] = useState(null);
 
   const filteredSubjects = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -45,7 +52,11 @@ const Subjects = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredSubjects.map((subject) => (
-            <SubjectCard key={subject.id} subject={subject} />
+            <SubjectCard
+              key={subject.id}
+              subject={subject}
+              onDelSubject={(subjObj) => setSubjectToDel(subjObj)}
+            />
           ))}
         </div>
       </Layout>
@@ -55,6 +66,21 @@ const Subjects = () => {
           <AddSubject onClose={() => setShowAddSubject(false)} />
         )}
       </AnimatePresence>
+
+      {subjectToDel && (
+        <ConfirmDeleteModal
+          title="Delete Subject?"
+          message={`Are you sure you want to delete the ${subjectToDel.name} subject? This action cannot be undone.`}
+          onCancel={() => {
+            setSubjectToDel(null);
+          }}
+          onConfirm={() => {
+            dispatch(removeSubject(subjectToDel.id));
+            toast.success(`${subjectToDel.name} removed`);
+            setSubjectToDel(null);
+          }}
+        />
+      )}
     </>
   );
 };
