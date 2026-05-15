@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useQuestionnaire } from "@/context/QuestionnaireContext";
+import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 
 const RequireQues = () => {
   const { quesData, loading } = useQuestionnaire();

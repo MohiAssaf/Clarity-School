@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import HeroIcons from "@/components/home/HeroIcons";
 import FeatureCard from "@/components/home/FeatureCard";
 import { FaCalendarPlus, FaChartLine, FaUsers } from "react-icons/fa";
-import { useQuestionnaire } from "@/context/QuestionnaireContext";
+import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 
 const Home = () => {
   const { quesData } = useQuestionnaire();
@@ -81,7 +81,7 @@ const Home = () => {
                 Features
               </h2>
               <p className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
-                Everything you need to manage your school's timetable.
+                Everything you need to manage your school&apos;s timetable.
               </p>
             </motion.div>
 

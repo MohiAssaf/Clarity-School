@@ -4,7 +4,7 @@ import { addTeacher } from "@/features/teachers/teachersSlice";
 import { selectSubjects } from "@/features/subjects/subjectsSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus, FaTimes } from "react-icons/fa";
-import { useQuestionnaire } from "@/context/QuestionnaireContext";
+import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 import { editTeacher } from "@/features/teachers/teachersSlice";
 import { toast } from "react-toastify";
 

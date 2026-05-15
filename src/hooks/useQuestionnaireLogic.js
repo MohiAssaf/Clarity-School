@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuestionnaire } from "@/context/QuestionnaireContext";
+import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 import { toast } from "react-toastify";
 
 const allDays = [

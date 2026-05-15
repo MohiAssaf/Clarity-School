@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
-
-const QuestionnaireContext = createContext();
+import { useState, useEffect } from "react";
+import { QuestionnaireContext } from "@/context/questionnaireContextValue";
 
 export const QuestionnaireProvider = ({ children }) => {
   const [quesData, setQuesData] = useState(null);
@@ -27,5 +26,3 @@ export const QuestionnaireProvider = ({ children }) => {
     </QuestionnaireContext.Provider>
   );
 };
-
-export const useQuestionnaire = () => useContext(QuestionnaireContext);
