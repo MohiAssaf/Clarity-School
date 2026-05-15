@@ -1,6 +1,14 @@
 import { MdDelete, MdModeEdit } from "react-icons/md";
 
 const TeacherCard = ({ teacher, onEditTeacher, onDeleteTeacher }) => {
+  const assignedWeeklyLoad =
+    teacher.assignments?.reduce(
+      (total, assignment) => total + Number(assignment.frequency || 0),
+      0
+    ) || 0;
+  const maxWeeklyHours = Number(teacher.maxWeeklyHours || 30);
+  const isOverloaded = assignedWeeklyLoad > maxWeeklyHours;
+
   return (
     <div className="relative bg-white rounded-xl shadow-md overflow-hidden transform">
       <div
@@ -67,6 +75,16 @@ const TeacherCard = ({ teacher, onEditTeacher, onDeleteTeacher }) => {
               ? "Early (1-3)"
               : "Late (4-7)"}
           </span>
+        </div>
+
+        <div
+          className={`mt-3 rounded-lg border px-3 py-2 text-xs sm:text-sm font-medium ${
+            isOverloaded
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-blue-100 bg-blue-50 text-blue-700"
+          }`}
+        >
+          Weekly load: {assignedWeeklyLoad} / {maxWeeklyHours}
         </div>
 
         {teacher.assignments?.length > 0 && (

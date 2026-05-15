@@ -4,7 +4,7 @@ import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 const RequireQues = () => {
   const { quesData, loading } = useQuestionnaire();
 
-  if (loading) return;
+  if (loading) return null;
 
   return quesData ? <Outlet /> : <Navigate to="/questionnaire" replace />;
 };

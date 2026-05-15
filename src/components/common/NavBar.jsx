@@ -4,7 +4,7 @@ import {
   FaCalendarAlt,
   FaBookOpen,
 } from "react-icons/fa";
-import { NavLink } from "react-router";
+import { NavLink } from "react-router-dom";
 
 const Navbar = () => {
   return (

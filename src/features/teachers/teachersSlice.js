@@ -8,6 +8,7 @@ const DUMMY_TEACHERS = [
     imageUrl:
       "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     availability: "flexible",
+    maxWeeklyHours: 30,
     assignments: [
       { grade: 10, subject: "Mathematics", frequency: 5 },
       { grade: 10, subject: "Physics", frequency: 3 },
@@ -19,12 +20,27 @@ const DUMMY_TEACHERS = [
     email: "ema.thomason@school.edu",
     imageUrl: "https://www.workitdaily.com/media-library/image.jpg?id=19296355",
     availability: "early",
+    maxWeeklyHours: 30,
     assignments: [
       { grade: 8, subject: "History", frequency: 4 },
       { grade: 9, subject: "Geography", frequency: 6 },
     ],
   },
 ];
+
+const normalizeMaxWeeklyHours = (value, fallback = 30) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+};
+
+const normalizeAssignments = (assignments) =>
+  Array.isArray(assignments)
+    ? assignments.map((assignment) => ({
+        grade: Number(assignment.grade),
+        subject: assignment.subject?.trim() || "",
+        frequency: Number(assignment.frequency),
+      }))
+    : [];
 
 const teachersSlice = createSlice({
   name: "teachers",
@@ -36,15 +52,23 @@ const teachersSlice = createSlice({
       reducer(state, action) {
         state.list.push(action.payload);
       },
-      prepare({ name, email, imageUrl, availability, assignments }) {
+      prepare({
+        name,
+        email,
+        imageUrl,
+        availability,
+        maxWeeklyHours,
+        assignments,
+      }) {
         return {
           payload: {
             id: nanoid(),
-            name,
-            email,
-            imageUrl: imageUrl || "",
+            name: name?.trim() || "",
+            email: email?.trim() || "",
+            imageUrl: imageUrl?.trim() || "",
             availability: availability || "flexible",
-            assignments: Array.isArray(assignments) ? assignments : [],
+            maxWeeklyHours: normalizeMaxWeeklyHours(maxWeeklyHours),
+            assignments: normalizeAssignments(assignments),
           },
         };
       },
@@ -53,7 +77,18 @@ const teachersSlice = createSlice({
       const { id, updatedData } = action.payload;
       const existingTeacher = state.list.find((t) => t.id === id);
       if (existingTeacher) {
-        Object.assign(existingTeacher, updatedData);
+        Object.assign(existingTeacher, {
+          ...updatedData,
+          name: updatedData.name?.trim() || existingTeacher.name,
+          email: updatedData.email?.trim() || existingTeacher.email,
+          imageUrl: updatedData.imageUrl?.trim() || "",
+          availability: updatedData.availability || "flexible",
+          maxWeeklyHours: normalizeMaxWeeklyHours(
+            updatedData.maxWeeklyHours,
+            existingTeacher.maxWeeklyHours || 30
+          ),
+          assignments: normalizeAssignments(updatedData.assignments),
+        });
       }
     },
     removeTeacher(state, action) {
