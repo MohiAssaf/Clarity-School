@@ -13,6 +13,11 @@ const allDays = [
   "Sunday",
 ];
 
+const MIN_GRADES = 1;
+const MAX_GRADES = 12;
+const MIN_PERIODS_PER_DAY = 1;
+const MAX_PERIODS_PER_DAY = 12;
+
 const useQuestionnaireLogic = () => {
   const navigate = useNavigate();
   const { completeQuestionnaire } = useQuestionnaire();
@@ -44,31 +49,86 @@ const useQuestionnaireLogic = () => {
   const handlePeriodChange = (day, value) => {
     setPeriodsPerDay((prev) => ({
       ...prev,
-      [day]: parseInt(value) || 0,
+      [day]: value === "" ? "" : Number(value),
     }));
   };
 
-  const handleNext = () => setCurrentStep((prev) => prev + 1);
-  const handleBack = () => setCurrentStep((prev) => prev - 1);
+  const validateGradesCount = () => {
+    const normalizedGradesCount = Number(gradesCount);
 
-  const handleComplete = () => {
+    if (
+      !Number.isInteger(normalizedGradesCount) ||
+      normalizedGradesCount < MIN_GRADES ||
+      normalizedGradesCount > MAX_GRADES
+    ) {
+      toast.error(`Please enter between ${MIN_GRADES} and ${MAX_GRADES} grades.`);
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateDays = () => {
     if (daysOfWeek.length === 0) {
       toast.error("Please select at least one working day.");
-      return;
+      return false;
     }
+
+    return true;
+  };
+
+  const validatePeriods = () => {
     for (const day of daysOfWeek) {
-      if (!periodsPerDay[day] || periodsPerDay[day] <= 0) {
-        toast.error(`Please specify a valid number of periods for ${day}.`);
-        return;
+      const periods = Number(periodsPerDay[day]);
+
+      if (
+        !Number.isInteger(periods) ||
+        periods < MIN_PERIODS_PER_DAY ||
+        periods > MAX_PERIODS_PER_DAY
+      ) {
+        toast.error(
+          `Please enter between ${MIN_PERIODS_PER_DAY} and ${MAX_PERIODS_PER_DAY} periods for ${day}.`
+        );
+        return false;
       }
     }
 
-    const totalPeriodsPerWeek = Object.values(periodsPerDay).reduce(
-      (a, b) => a + b,
+    return true;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 1 && !validateGradesCount()) return;
+    if (currentStep === 2 && !validateDays()) return;
+
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  const handleBack = () => setCurrentStep((prev) => prev - 1);
+
+  const handleComplete = () => {
+    if (!validateGradesCount() || !validateDays() || !validatePeriods()) return;
+
+    const normalizedGradesCount = Number(gradesCount);
+    const normalizedPeriodsPerDay = Object.fromEntries(
+      daysOfWeek.map((day) => [day, Number(periodsPerDay[day])])
+    );
+    const grades = Array.from({ length: normalizedGradesCount }, (_, i) => ({
+      id: i + 1,
+      name: `Grade ${i + 1}`,
+    }));
+    const totalPeriodsPerWeek = daysOfWeek.reduce(
+      (total, day) => total + normalizedPeriodsPerDay[day],
       0
     );
-    const totalClassSlots = gradesCount * totalPeriodsPerWeek;
-    const data = { gradesCount, daysOfWeek, periodsPerDay, totalClassSlots };
+    const totalClassSlots = normalizedGradesCount * totalPeriodsPerWeek;
+    const data = {
+      gradesCount: normalizedGradesCount,
+      grades,
+      daysOfWeek,
+      periodsPerDay: normalizedPeriodsPerDay,
+      totalPeriodsPerWeek,
+      totalClassSlots,
+    };
 
     completeQuestionnaire(data);
     navigate("/dashboard");
@@ -87,6 +147,10 @@ const useQuestionnaireLogic = () => {
     handleBack,
     handleComplete,
     allDays,
+    minGrades: MIN_GRADES,
+    maxGrades: MAX_GRADES,
+    minPeriodsPerDay: MIN_PERIODS_PER_DAY,
+    maxPeriodsPerDay: MAX_PERIODS_PER_DAY,
   };
 };
 

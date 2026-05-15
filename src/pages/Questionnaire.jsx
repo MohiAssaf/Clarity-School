@@ -18,6 +18,10 @@ const Questionnaire = () => {
     handleNext,
     handleComplete,
     allDays,
+    minGrades,
+    maxGrades,
+    minPeriodsPerDay,
+    maxPeriodsPerDay,
   } = useQuestionnaireLogic();
 
   const renderStep = () => {
@@ -27,6 +31,8 @@ const Questionnaire = () => {
           <Step1_Grades
             gradesCount={gradesCount}
             setGradesCount={setGradesCount}
+            minGrades={minGrades}
+            maxGrades={maxGrades}
           />
         );
       case 2:
@@ -43,6 +49,8 @@ const Questionnaire = () => {
             daysOfWeek={daysOfWeek}
             periodsPerDay={periodsPerDay}
             handlePeriodChange={handlePeriodChange}
+            minPeriodsPerDay={minPeriodsPerDay}
+            maxPeriodsPerDay={maxPeriodsPerDay}
           />
         );
       default:

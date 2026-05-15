@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
 
-const Step3_Periods = ({ daysOfWeek, periodsPerDay, handlePeriodChange }) => (
+const Step3_Periods = ({
+  daysOfWeek,
+  periodsPerDay,
+  handlePeriodChange,
+  minPeriodsPerDay,
+  maxPeriodsPerDay,
+}) => (
   <motion.div
     key="step3"
     initial={{ opacity: 0, x: 50 }}
@@ -17,7 +23,8 @@ const Step3_Periods = ({ daysOfWeek, periodsPerDay, handlePeriodChange }) => (
           <span className="w-24 font-medium text-gray-700">{day}</span>
           <input
             type="number"
-            min="1"
+            min={minPeriodsPerDay}
+            max={maxPeriodsPerDay}
             placeholder="Periods"
             value={periodsPerDay[day] || ""}
             onChange={(e) => handlePeriodChange(day, e.target.value)}

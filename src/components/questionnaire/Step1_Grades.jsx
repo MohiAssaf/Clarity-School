@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-const Step1_Grades = ({ gradesCount, setGradesCount }) => (
+const Step1_Grades = ({ gradesCount, setGradesCount, minGrades, maxGrades }) => (
   <motion.div
     key="step1"
     initial={{ opacity: 0, x: 50 }}
@@ -13,8 +13,12 @@ const Step1_Grades = ({ gradesCount, setGradesCount }) => (
     </h2>
     <input
       type="number"
+      min={minGrades}
+      max={maxGrades}
       value={gradesCount}
-      onChange={(e) => setGradesCount(parseInt(e.target.value))}
+      onChange={(e) =>
+        setGradesCount(e.target.value === "" ? "" : Number(e.target.value))
+      }
       className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
     />
   </motion.div>
