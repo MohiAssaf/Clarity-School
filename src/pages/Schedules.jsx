@@ -1,11 +1,18 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
-import { FaCheckCircle, FaExclamationTriangle, FaTimesCircle } from "react-icons/fa";
+import {
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaPlay,
+  FaTimesCircle,
+} from "react-icons/fa";
+import { toast } from "react-toastify";
 import Layout from "@/components/common/Layout";
 import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 import { selectTeachers } from "@/features/teachers/teachersSlice";
 import { selectSubjects } from "@/features/subjects/subjectsSlice";
 import { evaluateScheduleReadiness } from "@/utils/scheduleReadiness";
+import { buildSchedulerPayload } from "@/utils/schedulerPayload";
 
 const Schedules = () => {
   const { quesData } = useQuestionnaire();
@@ -13,6 +20,10 @@ const Schedules = () => {
   const subjects = useSelector(selectSubjects);
   const readiness = useMemo(
     () => evaluateScheduleReadiness({ quesData, teachers, subjects }),
+    [quesData, teachers, subjects]
+  );
+  const schedulerPayload = useMemo(
+    () => buildSchedulerPayload({ quesData, teachers, subjects }),
     [quesData, teachers, subjects]
   );
   const summaryItems = [
@@ -23,6 +34,16 @@ const Schedules = () => {
     ["Requested Periods", readiness.summary.totalRequestedPeriods],
     ["Available Class Slots", readiness.summary.totalClassSlots],
   ];
+  const payloadSummaryItems = [
+    ["Days", schedulerPayload.school.days.length],
+    ["Periods/week", schedulerPayload.school.totalPeriodsPerWeek],
+    ["Payload assignments", schedulerPayload.assignments.length],
+    ["Teacher load rows", schedulerPayload.teachers.length],
+  ];
+
+  const handleGenerateClick = () => {
+    toast.info("Scheduler input is ready. Mock generation is the next step.");
+  };
 
   return (
     <Layout>
@@ -33,15 +54,30 @@ const Schedules = () => {
             Review whether the current setup is ready for timetable generation.
           </p>
         </div>
-        <div
-          className={`flex items-center gap-2 rounded-lg border px-4 py-3 font-semibold ${
-            readiness.isReady
-              ? "border-green-200 bg-green-50 text-green-700"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
-          {readiness.isReady ? <FaCheckCircle /> : <FaTimesCircle />}
-          {readiness.isReady ? "Ready to Generate" : "Needs Attention"}
+        <div className="flex flex-col gap-3 sm:items-end">
+          <div
+            className={`flex items-center gap-2 rounded-lg border px-4 py-3 font-semibold ${
+              readiness.isReady
+                ? "border-green-200 bg-green-50 text-green-700"
+                : "border-red-200 bg-red-50 text-red-700"
+            }`}
+          >
+            {readiness.isReady ? <FaCheckCircle /> : <FaTimesCircle />}
+            {readiness.isReady ? "Ready to Generate" : "Needs Attention"}
+          </div>
+          <button
+            type="button"
+            onClick={handleGenerateClick}
+            disabled={!readiness.isReady}
+            className={`flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold transition-colors ${
+              readiness.isReady
+                ? "cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                : "cursor-not-allowed bg-gray-200 text-gray-500"
+            }`}
+          >
+            <FaPlay />
+            Generate Schedule
+          </button>
         </div>
       </div>
 
@@ -105,6 +141,58 @@ const Schedules = () => {
             </div>
           )}
         </div>
+      </section>
+
+      <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Scheduler Input Preview
+        </h2>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {payloadSummaryItems.map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-lg border border-gray-100 bg-gray-50 p-4"
+            >
+              <p className="text-sm font-medium text-gray-500">{label}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 overflow-x-auto rounded-lg border border-gray-200">
+          <div className="min-w-[640px]">
+            <div className="grid grid-cols-4 bg-gray-50 px-4 py-3 text-xs font-bold uppercase text-gray-500">
+              <span>Teacher</span>
+              <span>Grade</span>
+              <span>Subject</span>
+              <span>Frequency</span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {schedulerPayload.assignments.slice(0, 6).map((assignment) => (
+                <div
+                  key={assignment.id}
+                  className="grid grid-cols-4 px-4 py-3 text-sm text-gray-700"
+                >
+                  <span className="font-medium text-gray-900">
+                    {assignment.teacherName}
+                  </span>
+                  <span>Grade {assignment.grade}</span>
+                  <span>{assignment.subject}</span>
+                  <span>{assignment.frequency} / week</span>
+                </div>
+              ))}
+              {schedulerPayload.assignments.length === 0 && (
+                <div className="px-4 py-4 text-sm font-medium text-gray-500">
+                  No assignments available for the scheduler payload.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        {schedulerPayload.assignments.length > 6 && (
+          <p className="mt-3 text-sm text-gray-500">
+            Showing 6 of {schedulerPayload.assignments.length} assignment rows.
+          </p>
+        )}
       </section>
     </Layout>
   );
