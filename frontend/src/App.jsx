@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard";
 import Teachers from "@/pages/Teachers";
 import Schedules from "@/pages/Schedules";
+import Assignments from "@/pages/Assignments";
 import NotFound from "@/pages/NotFound";
 import Home from "@/pages/Home";
 import Subjects from "@/pages/Subjects";
@@ -32,6 +33,7 @@ function App() {
           <Route element={<RequireQues />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/teachers" element={<Teachers />} />
+            <Route path="/assignments" element={<Assignments />} />
             <Route path="/schedules" element={<Schedules />} />
             <Route path="/subjects" element={<Subjects />} />
           </Route>

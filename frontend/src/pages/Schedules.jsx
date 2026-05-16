@@ -39,12 +39,6 @@ const Schedules = () => {
     ["Requested Periods", readiness.summary.totalRequestedPeriods],
     ["Available Class Slots", readiness.summary.totalClassSlots],
   ];
-  const payloadSummaryItems = [
-    ["Days", schedulerPayload.school.days.length],
-    ["Periods/week", schedulerPayload.school.totalPeriodsPerWeek],
-    ["Payload assignments", schedulerPayload.assignments.length],
-    ["Teacher load rows", schedulerPayload.teachers.length],
-  ];
   const gradeCoverage = readiness.summary.gradeCoverage || [];
 
   const handleGenerateClick = async () => {
@@ -241,58 +235,6 @@ const Schedules = () => {
             </div>
           ))}
         </div>
-      </section>
-
-      <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Scheduler Input Preview
-        </h2>
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {payloadSummaryItems.map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-lg border border-gray-100 bg-gray-50 p-4"
-            >
-              <p className="text-sm font-medium text-gray-500">{label}</p>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-5 overflow-x-auto rounded-lg border border-gray-200">
-          <div className="min-w-[640px]">
-            <div className="grid grid-cols-4 bg-gray-50 px-4 py-3 text-xs font-bold uppercase text-gray-500">
-              <span>Teacher</span>
-              <span>Grade</span>
-              <span>Subject</span>
-              <span>Frequency</span>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {schedulerPayload.assignments.slice(0, 6).map((assignment) => (
-                <div
-                  key={assignment.id}
-                  className="grid grid-cols-4 px-4 py-3 text-sm text-gray-700"
-                >
-                  <span className="font-medium text-gray-900">
-                    {assignment.teacherName}
-                  </span>
-                  <span>Grade {assignment.grade}</span>
-                  <span>{assignment.subject}</span>
-                  <span>{assignment.frequency} / week</span>
-                </div>
-              ))}
-              {schedulerPayload.assignments.length === 0 && (
-                <div className="px-4 py-4 text-sm font-medium text-gray-500">
-                  No assignments available for the scheduler payload.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        {schedulerPayload.assignments.length > 6 && (
-          <p className="mt-3 text-sm text-gray-500">
-            Showing 6 of {schedulerPayload.assignments.length} assignment rows.
-          </p>
-        )}
       </section>
 
       {(apiResult || apiError) && (
