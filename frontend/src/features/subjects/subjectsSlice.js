@@ -30,6 +30,8 @@ const DUMMY_SUBJECTS = [
   },
 ];
 
+const normalizeText = (value) => String(value || "").trim();
+
 const subjectsSlice = createSlice({
   name: "subjects",
   initialState: {
@@ -44,8 +46,8 @@ const subjectsSlice = createSlice({
         return {
           payload: {
             id: nanoid(),
-            name,
-            description,
+            name: normalizeText(name),
+            description: normalizeText(description),
           },
         };
       },

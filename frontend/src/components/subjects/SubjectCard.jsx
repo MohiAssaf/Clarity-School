@@ -1,7 +1,11 @@
 import { FaBook } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 
-const SubjectCard = ({ subject, onDelSubject }) => {
+const SubjectCard = ({ subject, usage, onDelSubject }) => {
+  const assignmentCount = usage?.assignmentCount || 0;
+  const assignedPeriods = usage?.assignedPeriods || 0;
+  const isAssigned = assignmentCount > 0;
+
   return (
     <div className="relative bg-white rounded-xl shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
       <div className="absolute top-3 right-3 flex items-center gap-2 sm:top-4 sm:right-4">
@@ -13,7 +17,7 @@ const SubjectCard = ({ subject, onDelSubject }) => {
             hover:bg-red-50 hover:border-red-400 transition-all duration-200
             active:scale-95
           "
-          aria-label="delete-subject"
+          aria-label={`Delete ${subject.name}`}
         >
           <MdDelete className="text-red-600 hover:text-red-700" size={16} />
         </button>
@@ -27,8 +31,24 @@ const SubjectCard = ({ subject, onDelSubject }) => {
           {subject.name}
         </h2>
       </div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
+            isAssigned
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700"
+          }`}
+        >
+          {isAssigned ? "Assigned" : "Unused"}
+        </span>
+        {isAssigned && (
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+            {assignedPeriods} periods/week
+          </span>
+        )}
+      </div>
       <p className="text-gray-600 text-sm grow leading-relaxed">
-        {subject.description}
+        {subject.description || "No description added."}
       </p>
     </div>
   );

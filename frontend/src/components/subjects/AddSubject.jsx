@@ -10,17 +10,25 @@ const AddSubject = ({ onClose, existingSubjects }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const subjectName = form.name.trim();
+    const description = form.description.trim();
+
+    if (!subjectName) {
+      toast.error("Subject name is required.");
+      return;
+    }
 
     const alreadyExists = existingSubjects.some(
-      (subject) => subject.name.toLowerCase() === form.name.trim().toLowerCase()
+      (subject) => subject.name.toLowerCase() === subjectName.toLowerCase()
     );
 
     if (alreadyExists) {
       toast.warn("This subject already exists!");
-      onClose();
       return;
     }
-    dispatch(addSubject(form));
+
+    dispatch(addSubject({ name: subjectName, description }));
+    toast.success(`${subjectName} added`);
     onClose();
   };
 
@@ -71,16 +79,16 @@ const AddSubject = ({ onClose, existingSubjects }) => {
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Description
+              <span className="font-normal text-gray-500"> (optional)</span>
             </label>
             <textarea
               id="description"
               rows="4"
-              placeholder="A foundational course covering..."
+              placeholder="Optional notes about this subject..."
               value={form.description}
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
               }
-              required
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-none"
             ></textarea>
           </div>
