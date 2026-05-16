@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 import { toast } from "react-toastify";
 
-const allDays = [
+const DEFAULT_DAYS = [
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
+];
+
+const allDays = [
+  ...DEFAULT_DAYS,
   "Saturday",
   "Sunday",
 ];
@@ -20,18 +24,49 @@ const MAX_PERIODS_PER_DAY = 12;
 
 const useQuestionnaireLogic = () => {
   const navigate = useNavigate();
-  const { completeQuestionnaire } = useQuestionnaire();
+  const { quesData, completeQuestionnaire } = useQuestionnaire();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [gradesCount, setGradesCount] = useState(1);
-  const [daysOfWeek, setDaysOfWeek] = useState([
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-  ]);
+  const [daysOfWeek, setDaysOfWeek] = useState(DEFAULT_DAYS);
   const [periodsPerDay, setPeriodsPerDay] = useState({});
+
+  useEffect(() => {
+    if (!quesData) return;
+
+    const savedGradesCount = Number(quesData.gradesCount || quesData.grades?.length);
+    const savedDaysOfWeek = Array.isArray(quesData.daysOfWeek)
+      ? quesData.daysOfWeek
+      : [];
+
+    if (
+      Number.isInteger(savedGradesCount) &&
+      savedGradesCount >= MIN_GRADES &&
+      savedGradesCount <= MAX_GRADES
+    ) {
+      setGradesCount(savedGradesCount);
+    }
+
+    if (savedDaysOfWeek.length > 0) {
+      setDaysOfWeek(savedDaysOfWeek);
+    }
+
+    if (quesData.periodsPerDay) {
+      setPeriodsPerDay(
+        Object.fromEntries(
+          savedDaysOfWeek.map((day) => {
+            const savedPeriods = quesData.periodsPerDay[day];
+            return [
+              day,
+              savedPeriods === undefined || savedPeriods === null
+                ? ""
+                : Number(savedPeriods),
+            ];
+          })
+        )
+      );
+    }
+  }, [quesData]);
 
   const toggleDay = (day) => {
     setDaysOfWeek((prev) =>
