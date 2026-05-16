@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   FaCheckCircle,
   FaExclamationTriangle,
+  FaInfoCircle,
   FaPlay,
   FaTimesCircle,
 } from "react-icons/fa";
@@ -13,11 +14,15 @@ import { selectTeachers } from "@/features/teachers/teachersSlice";
 import { selectSubjects } from "@/features/subjects/subjectsSlice";
 import { evaluateScheduleReadiness } from "@/utils/scheduleReadiness";
 import { buildSchedulerPayload } from "@/utils/schedulerPayload";
+import { requestScheduleGeneration } from "@/utils/schedulerApi";
 
 const Schedules = () => {
   const { quesData } = useQuestionnaire();
   const teachers = useSelector(selectTeachers);
   const subjects = useSelector(selectSubjects);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [apiResult, setApiResult] = useState(null);
+  const [apiError, setApiError] = useState("");
   const readiness = useMemo(
     () => evaluateScheduleReadiness({ quesData, teachers, subjects }),
     [quesData, teachers, subjects]
@@ -41,8 +46,27 @@ const Schedules = () => {
     ["Teacher load rows", schedulerPayload.teachers.length],
   ];
 
-  const handleGenerateClick = () => {
-    toast.info("Scheduler input is ready. Mock generation is the next step.");
+  const handleGenerateClick = async () => {
+    if (!readiness.isReady || isGenerating) return;
+
+    setIsGenerating(true);
+    setApiResult(null);
+    setApiError("");
+
+    try {
+      const result = await requestScheduleGeneration(schedulerPayload);
+      setApiResult(result);
+      toast.success("Scheduler API confirmed the request.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not reach the scheduler API.";
+      setApiError(message);
+      toast.error(message);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -68,15 +92,15 @@ const Schedules = () => {
           <button
             type="button"
             onClick={handleGenerateClick}
-            disabled={!readiness.isReady}
+            disabled={!readiness.isReady || isGenerating}
             className={`flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold transition-colors ${
-              readiness.isReady
+              readiness.isReady && !isGenerating
                 ? "cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
                 : "cursor-not-allowed bg-gray-200 text-gray-500"
             }`}
           >
             <FaPlay />
-            Generate Schedule
+            {isGenerating ? "Sending..." : "Generate Schedule"}
           </button>
         </div>
       </div>
@@ -194,6 +218,48 @@ const Schedules = () => {
           </p>
         )}
       </section>
+
+      {(apiResult || apiError) && (
+        <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            {apiResult ? (
+              <FaCheckCircle className="text-green-500" />
+            ) : (
+              <FaInfoCircle className="text-red-500" />
+            )}
+            <h2 className="text-lg font-semibold text-gray-800">
+              Backend Response
+            </h2>
+          </div>
+
+          {apiResult ? (
+            <>
+              <div className="rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                {apiResult.message}
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                {Object.entries(apiResult.received || {}).map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-lg border border-gray-100 bg-gray-50 p-4"
+                  >
+                    <p className="text-sm font-medium text-gray-500">
+                      {label}
+                    </p>
+                    <p className="mt-2 text-2xl font-bold text-gray-900">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              {apiError}
+            </div>
+          )}
+        </section>
+      )}
     </Layout>
   );
 };
