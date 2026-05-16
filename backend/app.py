@@ -112,7 +112,9 @@ def validate_scheduler_payload(payload):
             errors.append(f"school.periodsPerDay.{day} must be a positive integer.")
 
     total_class_slots = int_or_zero(school.get("totalClassSlots"))
+    total_periods_per_week = int_or_zero(school.get("totalPeriodsPerWeek"))
     total_requested_periods = 0
+    requested_periods_by_grade = {grade_id: 0 for grade_id in grade_ids}
 
     for index, assignment in enumerate(assignments, start=1):
         if not isinstance(assignment, dict):
@@ -134,9 +136,27 @@ def validate_scheduler_payload(payload):
             errors.append(f"assignments[{index}].frequency must be a positive integer.")
         else:
             total_requested_periods += frequency
+            if grade in requested_periods_by_grade:
+                requested_periods_by_grade[grade] += frequency
 
     if total_class_slots > 0 and total_requested_periods > total_class_slots:
         errors.append("Total requested periods exceed available class slots.")
+
+    if total_class_slots > 0 and total_requested_periods < total_class_slots:
+        errors.append(
+            f"Total requested periods ({total_requested_periods}) must equal available class slots ({total_class_slots})."
+        )
+
+    if total_periods_per_week > 0:
+        for grade in grades:
+            grade_id = grade.get("id")
+            grade_name = grade.get("name") or f"Grade {grade_id}"
+            requested_periods = requested_periods_by_grade.get(grade_id, 0)
+
+            if requested_periods != total_periods_per_week:
+                errors.append(
+                    f"{grade_name} has {requested_periods} assigned periods but needs {total_periods_per_week}."
+                )
 
     return errors
 

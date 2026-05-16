@@ -56,6 +56,12 @@ export const evaluateScheduleReadiness = ({ quesData, teachers, subjects }) => {
   }
 
   const gradeIds = new Set(grades.map((grade) => Number(grade.id)));
+  const gradeLabels = new Map(
+    grades.map((grade) => [Number(grade.id), grade.name || `Grade ${grade.id}`])
+  );
+  const requestedPeriodsByGrade = new Map(
+    grades.map((grade) => [Number(grade.id), 0])
+  );
   const subjectNames = new Set(subjects.map((subject) => normalizeText(subject.name)));
   const usedSubjectNames = new Set();
   let assignmentCount = 0;
@@ -99,6 +105,12 @@ export const evaluateScheduleReadiness = ({ quesData, teachers, subjects }) => {
         blockers.push(`${teacher.name} has an assignment with an invalid frequency.`);
       } else {
         totalRequestedPeriods += frequency;
+        if (gradeIds.has(grade)) {
+          requestedPeriodsByGrade.set(
+            grade,
+            (requestedPeriodsByGrade.get(grade) || 0) + frequency
+          );
+        }
 
         if (frequency > totalPeriodsPerWeek) {
           blockers.push(
@@ -117,6 +129,20 @@ export const evaluateScheduleReadiness = ({ quesData, teachers, subjects }) => {
     blockers.push(
       `Requested periods (${totalRequestedPeriods}) exceed available class slots (${totalClassSlots}).`
     );
+  }
+
+  if (totalRequestedPeriods < totalClassSlots) {
+    blockers.push(
+      `Requested periods (${totalRequestedPeriods}) must fill all available class slots (${totalClassSlots}).`
+    );
+  }
+
+  for (const [gradeId, requestedPeriods] of requestedPeriodsByGrade.entries()) {
+    if (requestedPeriods !== totalPeriodsPerWeek) {
+      blockers.push(
+        `${gradeLabels.get(gradeId)} has ${requestedPeriods} assigned periods but needs ${totalPeriodsPerWeek}.`
+      );
+    }
   }
 
   const unusedSubjects = subjects.filter(
@@ -139,6 +165,7 @@ export const evaluateScheduleReadiness = ({ quesData, teachers, subjects }) => {
       totalClassSlots,
       totalPeriodsPerWeek,
       totalRequestedPeriods,
+      requestedPeriodsByGrade: Object.fromEntries(requestedPeriodsByGrade),
     },
   };
 };
