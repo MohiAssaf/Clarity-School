@@ -153,6 +153,23 @@ export const evaluateScheduleReadiness = ({ quesData, teachers, subjects }) => {
     warnings.push(`${unusedSubjects.length} subjects are not assigned to any teacher.`);
   }
 
+  const gradeCoverage = grades.map((grade) => {
+    const gradeId = Number(grade.id);
+    const assignedPeriods = requestedPeriodsByGrade.get(gradeId) || 0;
+    const difference = assignedPeriods - totalPeriodsPerWeek;
+
+    return {
+      gradeId,
+      gradeName: grade.name || `Grade ${grade.id}`,
+      assignedPeriods,
+      requiredPeriods: totalPeriodsPerWeek,
+      missingPeriods: Math.max(totalPeriodsPerWeek - assignedPeriods, 0),
+      excessPeriods: Math.max(assignedPeriods - totalPeriodsPerWeek, 0),
+      status:
+        difference === 0 ? "ready" : difference < 0 ? "missing" : "excess",
+    };
+  });
+
   return {
     isReady: blockers.length === 0,
     blockers,
@@ -166,6 +183,7 @@ export const evaluateScheduleReadiness = ({ quesData, teachers, subjects }) => {
       totalPeriodsPerWeek,
       totalRequestedPeriods,
       requestedPeriodsByGrade: Object.fromEntries(requestedPeriodsByGrade),
+      gradeCoverage,
     },
   };
 };

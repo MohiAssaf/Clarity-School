@@ -45,6 +45,7 @@ const Schedules = () => {
     ["Payload assignments", schedulerPayload.assignments.length],
     ["Teacher load rows", schedulerPayload.teachers.length],
   ];
+  const gradeCoverage = readiness.summary.gradeCoverage || [];
 
   const handleGenerateClick = async () => {
     if (!readiness.isReady || isGenerating) return;
@@ -164,6 +165,81 @@ const Schedules = () => {
               No warnings found.
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Grade Coverage
+        </h2>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {gradeCoverage.map((grade) => (
+            <div
+              key={grade.gradeId}
+              className={`rounded-lg border p-4 ${
+                grade.status === "ready"
+                  ? "border-green-100 bg-green-50"
+                  : grade.status === "missing"
+                  ? "border-yellow-100 bg-yellow-50"
+                  : "border-red-100 bg-red-50"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-semibold text-gray-900">
+                  {grade.gradeName}
+                </h3>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
+                    grade.status === "ready"
+                      ? "bg-green-100 text-green-700"
+                      : grade.status === "missing"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {grade.status}
+                </span>
+              </div>
+              <div className="mt-4">
+                <div className="mb-2 flex items-center justify-between text-sm font-medium text-gray-600">
+                  <span>Assigned</span>
+                  <span>
+                    {grade.assignedPeriods} / {grade.requiredPeriods}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white">
+                  <div
+                    className={`h-full rounded-full ${
+                      grade.status === "ready"
+                        ? "bg-green-500"
+                        : grade.status === "missing"
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
+                    }`}
+                    style={{
+                      width: `${
+                        grade.requiredPeriods > 0
+                          ? Math.min(
+                              (grade.assignedPeriods / grade.requiredPeriods) *
+                                100,
+                              100
+                            )
+                          : 0
+                      }%`,
+                    }}
+                  />
+                </div>
+                <p className="mt-3 text-sm font-medium text-gray-700">
+                  {grade.status === "ready" &&
+                    "This grade has complete coverage."}
+                  {grade.status === "missing" &&
+                    `${grade.missingPeriods} periods still need assignments.`}
+                  {grade.status === "excess" &&
+                    `${grade.excessPeriods} periods must be removed.`}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
