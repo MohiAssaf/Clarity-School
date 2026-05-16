@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
 
+from scheduler import generate_basic_schedule
+
 
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -43,10 +45,15 @@ def create_app():
                 content={"status": "error", "errors": errors},
             )
 
+        generated = generate_basic_schedule(payload)
+
         return {
             "status": "ok",
-            "message": "Scheduler API scaffold connected. Real scheduling is not implemented yet.",
+            "message": "Basic schedule generated. This is a deterministic preview scheduler, not the final solver.",
             "received": build_request_summary(payload),
+            "schedule": generated["schedule"],
+            "unplaced": generated["unplaced"],
+            "metadata": generated["metadata"],
         }
 
     return app
