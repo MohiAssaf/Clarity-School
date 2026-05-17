@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { FaSearch } from "react-icons/fa";
+import { FaCheckCircle, FaExclamationTriangle, FaSearch } from "react-icons/fa";
 import Layout from "@/components/common/Layout";
 import { useQuestionnaire } from "@/hooks/useQuestionnaire";
 import { selectSubjects } from "@/features/subjects/subjectsSlice";
@@ -13,6 +13,7 @@ const Assignments = () => {
   const teachers = useSelector(selectTeachers);
   const subjects = useSelector(selectSubjects);
   const [searchTerm, setSearchTerm] = useState("");
+  const [coverageFilter, setCoverageFilter] = useState("all");
   const schedulerPayload = useMemo(
     () => buildSchedulerPayload({ quesData, teachers, subjects }),
     [quesData, teachers, subjects]
@@ -22,9 +23,26 @@ const Assignments = () => {
     [quesData, teachers, subjects]
   );
   const assignments = schedulerPayload.assignments;
+  const gradeCoverage = useMemo(
+    () => readiness.summary.gradeCoverage || [],
+    [readiness.summary.gradeCoverage]
+  );
   const totalAssignedPeriods = assignments.reduce(
     (total, assignment) => total + assignment.frequency,
     0
+  );
+  const filteredGradeCoverage = useMemo(() => {
+    if (coverageFilter === "all") return gradeCoverage;
+    return gradeCoverage.filter((grade) => grade.status === coverageFilter);
+  }, [coverageFilter, gradeCoverage]);
+  const coverageCounts = useMemo(
+    () => ({
+      all: gradeCoverage.length,
+      ready: gradeCoverage.filter((grade) => grade.status === "ready").length,
+      missing: gradeCoverage.filter((grade) => grade.status === "missing").length,
+      excess: gradeCoverage.filter((grade) => grade.status === "excess").length,
+    }),
+    [gradeCoverage]
   );
   const filteredAssignments = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -54,7 +72,7 @@ const Assignments = () => {
     ["Assignments", assignments.length],
     ["Assigned Periods", totalAssignedPeriods],
     ["Required Periods", readiness.summary.totalClassSlots],
-    ["Grades Ready", getReadyGradeCount(readiness.summary.gradeCoverage || [])],
+    ["Grades Ready", coverageCounts.ready],
   ];
 
   return (
@@ -79,46 +97,113 @@ const Assignments = () => {
       </section>
 
       <section className="mb-8 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800">Grade Coverage</h2>
-        <div className="mt-4 overflow-x-auto">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">
+              Grade Coverage
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Each grade must match the required weekly periods before schedule
+              generation.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {["all", "ready", "missing", "excess"].map((status) => (
+              <button
+                key={status}
+                type="button"
+                onClick={() => setCoverageFilter(status)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold capitalize transition ${
+                  coverageFilter === status
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {status} ({coverageCounts[status]})
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5 overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-100">
             <thead>
               <tr className="text-left text-xs font-bold uppercase text-gray-500">
                 <th className="py-3 pr-4">Grade</th>
-                <th className="py-3 pr-4">Assigned</th>
-                <th className="py-3 pr-4">Remaining</th>
+                <th className="py-3 pr-4">Coverage</th>
+                <th className="py-3 pr-4">Difference</th>
                 <th className="py-3 pr-4">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {(readiness.summary.gradeCoverage || []).map((grade) => (
+              {filteredGradeCoverage.map((grade) => (
                 <tr key={grade.gradeId} className="text-sm text-gray-700">
                   <td className="py-3 pr-4 font-medium text-gray-900">
                     {grade.gradeName}
                   </td>
                   <td className="py-3 pr-4">
-                    {grade.assignedPeriods} / {grade.requiredPeriods}
+                    <div className="min-w-40">
+                      <div className="mb-1 flex items-center justify-between gap-3">
+                        <span>
+                          {grade.assignedPeriods} / {grade.requiredPeriods}
+                        </span>
+                        <span className="text-xs font-medium text-gray-500">
+                          {getCoveragePercentage(
+                            grade.assignedPeriods,
+                            grade.requiredPeriods
+                          )}
+                          %
+                        </span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className={`h-full rounded-full ${
+                            grade.status === "ready"
+                              ? "bg-green-500"
+                              : grade.status === "missing"
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                          }`}
+                          style={{
+                            width: `${getCoveragePercentage(
+                              grade.assignedPeriods,
+                              grade.requiredPeriods
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </td>
                   <td className="py-3 pr-4">
-                    {grade.status === "excess"
-                      ? `-${grade.excessPeriods}`
-                      : grade.missingPeriods}
+                    {getGradeDifferenceLabel(grade)}
                   </td>
                   <td className="py-3 pr-4">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
-                        grade.status === "ready"
-                          ? "bg-green-100 text-green-700"
-                          : grade.status === "missing"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
+                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold uppercase ${getStatusBadgeClasses(
+                        grade.status
+                      )}`}
                     >
+                      {grade.status === "ready" ? (
+                        <FaCheckCircle />
+                      ) : (
+                        <FaExclamationTriangle />
+                      )}
                       {grade.status}
                     </span>
                   </td>
                 </tr>
               ))}
+              {filteredGradeCoverage.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="py-6 text-center text-sm font-medium text-gray-500"
+                  >
+                    No grades match this filter.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -182,7 +267,24 @@ const Assignments = () => {
   );
 };
 
-const getReadyGradeCount = (gradeCoverage) =>
-  gradeCoverage.filter((grade) => grade.status === "ready").length;
+const getCoveragePercentage = (assigned, required) => {
+  if (!required) return 0;
+  return Math.min(Math.round((assigned / required) * 100), 100);
+};
+
+const getGradeDifferenceLabel = (grade) => {
+  if (grade.status === "ready") return "Complete";
+  if (grade.status === "excess") {
+    return `${grade.excessPeriods} over`;
+  }
+
+  return `${grade.missingPeriods} missing`;
+};
+
+const getStatusBadgeClasses = (status) => {
+  if (status === "ready") return "bg-green-100 text-green-700";
+  if (status === "missing") return "bg-yellow-100 text-yellow-700";
+  return "bg-red-100 text-red-700";
+};
 
 export default Assignments;
