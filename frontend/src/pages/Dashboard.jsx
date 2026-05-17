@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   FaArrowRight,
   FaBook,
@@ -8,18 +9,30 @@ import {
   FaCheckCircle,
   FaClipboardList,
   FaCog,
+  FaDatabase,
   FaExclamationCircle,
 } from "react-icons/fa";
+import { toast } from "react-toastify";
 import Layout from "@/components/common/Layout";
+import ConfirmDeleteModal from "@/components/common/ConfirmDeleteModal";
 import { useQuestionnaire } from "@/hooks/useQuestionnaire";
-import { selectSubjects } from "@/features/subjects/subjectsSlice";
-import { selectTeachers } from "@/features/teachers/teachersSlice";
+import {
+  replaceSubjects,
+  selectSubjects,
+} from "@/features/subjects/subjectsSlice";
+import {
+  replaceTeachers,
+  selectTeachers,
+} from "@/features/teachers/teachersSlice";
 import { evaluateScheduleReadiness } from "@/utils/scheduleReadiness";
+import { demoSchoolData } from "@/mocks/demoSchoolData";
 
 const Dashboard = () => {
-  const { quesData } = useQuestionnaire();
+  const dispatch = useDispatch();
+  const { quesData, completeQuestionnaire } = useQuestionnaire();
   const subjects = useSelector(selectSubjects);
   const teachers = useSelector(selectTeachers);
+  const [showDemoConfirm, setShowDemoConfirm] = useState(false);
   const grades =
     quesData?.grades ||
     Array.from({ length: Number(quesData?.gradesCount || 0) }, (_, i) => ({
@@ -96,14 +109,33 @@ const Dashboard = () => {
     },
   ];
 
+  const handleLoadDemoData = () => {
+    completeQuestionnaire(demoSchoolData.questionnaire);
+    dispatch(replaceSubjects(demoSchoolData.subjects));
+    dispatch(replaceTeachers(demoSchoolData.teachers));
+    setShowDemoConfirm(false);
+    toast.success("Demo school data loaded.");
+  };
+
   return (
-    <Layout>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Setup progress for building a complete weekly timetable.
-        </p>
-      </div>
+    <>
+      <Layout>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
+            <p className="mt-2 text-gray-600">
+              Setup progress for building a complete weekly timetable.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDemoConfirm(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+          >
+            <FaDatabase />
+            Load Demo Data
+          </button>
+        </div>
 
       <section className="mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -210,7 +242,19 @@ const Dashboard = () => {
           )}
         </div>
       </section>
-    </Layout>
+      </Layout>
+
+      {showDemoConfirm && (
+        <ConfirmDeleteModal
+          title="Load Demo Data?"
+          message="This will replace your current school setup, subjects, teachers, and assignments with complete demo data for testing schedule generation."
+          confirmLabel="Load Demo"
+          variant="warning"
+          onCancel={() => setShowDemoConfirm(false)}
+          onConfirm={handleLoadDemoData}
+        />
+      )}
+    </>
   );
 };
 

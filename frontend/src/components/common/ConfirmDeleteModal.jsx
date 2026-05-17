@@ -1,7 +1,26 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdWarning } from "react-icons/md";
 
-const ConfirmDeleteModal = ({ title, message, onCancel, onConfirm }) => {
+const ConfirmDeleteModal = ({
+  title,
+  message,
+  onCancel,
+  onConfirm,
+  confirmLabel = "Delete",
+  variant = "danger",
+}) => {
+  const Icon = variant === "warning" ? MdWarning : MdDelete;
+  const toneClasses =
+    variant === "warning"
+      ? {
+          icon: "bg-yellow-100 text-yellow-600",
+          button: "bg-blue-600 hover:bg-blue-700",
+        }
+      : {
+          icon: "bg-red-100 text-red-600",
+          button: "bg-red-500 hover:bg-red-600",
+        };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -25,8 +44,8 @@ const ConfirmDeleteModal = ({ title, message, onCancel, onConfirm }) => {
           exit={{ scale: 0.9, opacity: 0 }}
         >
           <div className="flex flex-col items-center text-center">
-            <div className="bg-red-100 p-3 rounded-full mb-3">
-              <MdDelete className="text-red-600" size={28} />
+            <div className={`${toneClasses.icon} p-3 rounded-full mb-3`}>
+              <Icon size={28} />
             </div>
             <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
             <p className="text-gray-600 text-sm mt-2">{message}</p>
@@ -40,9 +59,9 @@ const ConfirmDeleteModal = ({ title, message, onCancel, onConfirm }) => {
               </button>
               <button
                 onClick={onConfirm}
-                className="cursor-pointer flex-1 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium"
+                className={`cursor-pointer flex-1 py-2.5 rounded-lg ${toneClasses.button} text-white font-medium`}
               >
-                Delete
+                {confirmLabel}
               </button>
             </div>
           </div>

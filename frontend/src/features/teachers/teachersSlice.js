@@ -1,33 +1,5 @@
 import { createSlice, nanoid } from "@reduxjs/toolkit";
 
-const DUMMY_TEACHERS = [
-  {
-    id: 1,
-    name: "Tom Mathew",
-    email: "tom.mathew@mathew.edu",
-    imageUrl:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    availability: "flexible",
-    maxWeeklyHours: 30,
-    assignments: [
-      { grade: 10, subject: "Mathematics", frequency: 5 },
-      { grade: 10, subject: "Physics", frequency: 3 },
-    ],
-  },
-  {
-    id: 2,
-    name: "Ema Thomason",
-    email: "ema.thomason@school.edu",
-    imageUrl: "https://www.workitdaily.com/media-library/image.jpg?id=19296355",
-    availability: "early",
-    maxWeeklyHours: 30,
-    assignments: [
-      { grade: 8, subject: "History", frequency: 4 },
-      { grade: 9, subject: "Geography", frequency: 6 },
-    ],
-  },
-];
-
 const normalizeMaxWeeklyHours = (value, fallback = 30) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
@@ -45,7 +17,7 @@ const normalizeAssignments = (assignments) =>
 const teachersSlice = createSlice({
   name: "teachers",
   initialState: {
-    list: DUMMY_TEACHERS,
+    list: [],
   },
   reducers: {
     addTeacher: {
@@ -94,9 +66,21 @@ const teachersSlice = createSlice({
     removeTeacher(state, action) {
       state.list = state.list.filter((t) => t.id !== action.payload);
     },
+    replaceTeachers(state, action) {
+      state.list = action.payload.map((teacher) => ({
+        id: teacher.id,
+        name: teacher.name?.trim() || "",
+        email: teacher.email?.trim() || "",
+        imageUrl: teacher.imageUrl?.trim() || "",
+        availability: teacher.availability || "flexible",
+        maxWeeklyHours: normalizeMaxWeeklyHours(teacher.maxWeeklyHours),
+        assignments: normalizeAssignments(teacher.assignments),
+      }));
+    },
   },
 });
 
-export const { addTeacher, editTeacher, removeTeacher } = teachersSlice.actions;
+export const { addTeacher, editTeacher, removeTeacher, replaceTeachers } =
+  teachersSlice.actions;
 export const selectTeachers = (state) => state.teachers.list;
 export default teachersSlice.reducer;
