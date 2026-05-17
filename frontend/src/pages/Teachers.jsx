@@ -19,22 +19,93 @@ const Teachers = () => {
   const [teacherToDelete, setTeacherToDelete] = useState(null);
   const [teacherToEdit, setTeacherToEdit] = useState(null);
 
+  const getTeacherWeeklyLoad = (teacher) =>
+    (teacher.assignments || []).reduce(
+      (total, assignment) => total + Number(assignment.frequency || 0),
+      0,
+    );
+
+  const teacherStats = useMemo(() => {
+    const assignedTeachers = teachers.filter(
+      (teacher) => teacher.assignments?.length > 0,
+    );
+    const overloadedTeachers = teachers.filter((teacher) => {
+      const assignedWeeklyLoad = getTeacherWeeklyLoad(teacher);
+      const maxWeeklyHours = Number(teacher.maxWeeklyHours || 0);
+
+      return maxWeeklyHours > 0 && assignedWeeklyLoad > maxWeeklyHours;
+    });
+    const totalAssignedPeriods = teachers.reduce(
+      (total, teacher) => total + getTeacherWeeklyLoad(teacher),
+      0,
+    );
+
+    return {
+      assignedTeachersCount: assignedTeachers.length,
+      overloadedTeachersCount: overloadedTeachers.length,
+      totalAssignedPeriods,
+    };
+  }, [teachers]);
+
   const filteredTeachers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return teachers;
-    return teachers.filter((t) => t.name.toLowerCase().includes(q));
+    const sortedTeachers = [...teachers].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+
+    if (!q) return sortedTeachers;
+
+    return sortedTeachers.filter((teacher) =>
+      [
+        teacher.name,
+        teacher.email,
+        teacher.availability,
+        ...(teacher.assignments || []).flatMap((assignment) => [
+          assignment.subject,
+          `grade ${assignment.grade}`,
+          String(assignment.frequency),
+        ]),
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
   }, [teachers, searchTerm]);
+
+  const summaryCards = [
+    ["Teachers", teachers.length],
+    ["With Assignments", teacherStats.assignedTeachersCount],
+    ["Assigned Periods", teacherStats.totalAssignedPeriods],
+    ["Overloaded", teacherStats.overloadedTeachersCount],
+  ];
 
   return (
     <>
       <Layout>
-        <h1 className="text-4xl font-bold mb-8">Teachers</h1>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Teachers</h1>
+          <p className="mt-2 text-gray-600">
+            Manage teacher details, weekly limits, and teaching assignments.
+          </p>
+        </div>
 
-        <div className="flex justify-between items-center mb-6 gap-4">
+        <section className="mb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {summaryCards.map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+            >
+              <p className="text-sm font-medium text-gray-500">{label}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
+            </div>
+          ))}
+        </section>
+
+        <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
           <div className="relative w-full max-w-sm">
             <input
               type="text"
-              placeholder="Search for a teacher..."
+              placeholder="Search teachers, subjects, or grades..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
@@ -44,7 +115,7 @@ const Teachers = () => {
 
           <button
             onClick={() => setShowAddTeacher(true)}
-            className="cursor-pointer py-3 px-4 bg-blue-500 text-white rounded-lg flex items-center gap-2 hover:bg-blue-600"
+            className="cursor-pointer py-3 px-4 bg-blue-600 text-white rounded-lg flex items-center gap-2 font-semibold hover:bg-blue-700"
           >
             <FaPlus /> Add Teacher
           </button>
@@ -63,6 +134,11 @@ const Teachers = () => {
               }}
             />
           ))}
+          {filteredTeachers.length === 0 && (
+            <div className="col-span-full rounded-lg border border-gray-200 bg-white p-8 text-center text-sm font-medium text-gray-500 shadow-sm">
+              No teachers found.
+            </div>
+          )}
         </div>
       </Layout>
 
