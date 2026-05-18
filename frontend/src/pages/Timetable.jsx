@@ -4,10 +4,16 @@ import {
   FaCalendarAlt,
   FaChalkboardTeacher,
   FaCheckCircle,
+  FaDownload,
   FaExclamationTriangle,
 } from "react-icons/fa";
 import Layout from "@/components/common/Layout";
 import { loadGeneratedTimetable } from "@/utils/generatedTimetableStorage";
+import {
+  buildGradeCsvRows,
+  buildTeacherCsvRows,
+  downloadTimetableCsv,
+} from "@/utils/timetableExport";
 import {
   formatLabel,
   getSelectedGradeLessons,
@@ -117,6 +123,35 @@ const Timetable = () => {
     [result, selectedDay, selectedTeacherId, selectedPeriods, school.grades]
   );
 
+  const handleExportCsv = () => {
+    if (viewMode === "grade") {
+      const gradeName = selectedGrade?.name || "Selected Grade";
+
+      downloadTimetableCsv({
+        filename: `${gradeName}-${selectedDay}-timetable`,
+        headers: ["Period", "Day", "Grade", "Subject", "Teacher"],
+        rows: buildGradeCsvRows({
+          lessons: gradeLessons,
+          day: selectedDay,
+          gradeName,
+        }),
+      });
+      return;
+    }
+
+    const teacherName = selectedTeacher?.name || "Selected Teacher";
+
+    downloadTimetableCsv({
+      filename: `${teacherName}-${selectedDay}-timetable`,
+      headers: ["Period", "Day", "Teacher", "Grade", "Subject"],
+      rows: buildTeacherCsvRows({
+        lessons: teacherLessons,
+        day: selectedDay,
+        teacherName,
+      }),
+    });
+  };
+
   if (!timetable) {
     return (
       <Layout>
@@ -155,6 +190,14 @@ const Timetable = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700"
+          >
+            <FaDownload />
+            Export CSV
+          </button>
           <button
             type="button"
             onClick={() => setViewMode("grade")}
