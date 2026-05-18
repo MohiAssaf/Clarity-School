@@ -4,6 +4,7 @@ import {
   FaCalendarAlt,
   FaBookOpen,
   FaClipboardList,
+  FaTable,
 } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
@@ -77,6 +78,19 @@ const Navbar = () => {
           >
             <FaCalendarAlt className="mr-3 text-lg" />
             Schedules
+          </NavLink>
+        </li>
+        <li className="w-full">
+          <NavLink
+            to="/timetable"
+            className={({ isActive }) =>
+              `flex items-center p-3 rounded-lg transition-colors duration-200 text-gray-700 font-medium ${
+                isActive ? "bg-blue-100 text-blue-800" : "hover:bg-gray-100"
+              }`
+            }
+          >
+            <FaTable className="mr-3 text-lg" />
+            Timetable
           </NavLink>
         </li>
       </ul>

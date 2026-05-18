@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import {
+  FaCalendarAlt,
   FaCheckCircle,
   FaExclamationTriangle,
   FaInfoCircle,
@@ -15,21 +17,7 @@ import { selectSubjects } from "@/features/subjects/subjectsSlice";
 import { evaluateScheduleReadiness } from "@/utils/scheduleReadiness";
 import { buildSchedulerPayload } from "@/utils/schedulerPayload";
 import { requestScheduleGeneration } from "@/utils/schedulerApi";
-
-const getSelectedLessons = ({ schedule, day, gradeId, periodsCount }) => {
-  if (!schedule || !day || !gradeId || periodsCount <= 0) return [];
-
-  const gradeSchedule = schedule?.[day]?.[String(gradeId)] || {};
-
-  return Array.from({ length: periodsCount }, (_, index) => {
-    const period = index + 1;
-
-    return {
-      period,
-      lesson: gradeSchedule[String(period)] || null,
-    };
-  });
-};
+import { saveGeneratedTimetable } from "@/utils/generatedTimetableStorage";
 
 const formatLabel = (value) =>
   String(value)
@@ -43,8 +31,6 @@ const Schedules = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiResult, setApiResult] = useState(null);
   const [apiError, setApiError] = useState("");
-  const [selectedGradeId, setSelectedGradeId] = useState("");
-  const [selectedDay, setSelectedDay] = useState("");
   const readiness = useMemo(
     () => evaluateScheduleReadiness({ quesData, teachers, subjects }),
     [quesData, teachers, subjects]
@@ -62,31 +48,6 @@ const Schedules = () => {
     ["Available Class Slots", readiness.summary.totalClassSlots],
   ];
   const gradeCoverage = readiness.summary.gradeCoverage || [];
-  const gradeOptions = schedulerPayload.school.grades;
-  const dayOptions = schedulerPayload.school.days;
-  const selectedPeriods = Number(
-    schedulerPayload.school.periodsPerDay[selectedDay] || 0
-  );
-  const selectedLessons = getSelectedLessons({
-    schedule: apiResult?.schedule,
-    day: selectedDay,
-    gradeId: selectedGradeId,
-    periodsCount: selectedPeriods,
-  });
-
-  useEffect(() => {
-    const selectedGradeExists = gradeOptions.some(
-      (grade) => String(grade.id) === String(selectedGradeId)
-    );
-
-    if (gradeOptions.length > 0 && !selectedGradeExists) {
-      setSelectedGradeId(String(gradeOptions[0].id));
-    }
-
-    if (dayOptions.length > 0 && !dayOptions.includes(selectedDay)) {
-      setSelectedDay(dayOptions[0]);
-    }
-  }, [dayOptions, gradeOptions, selectedDay, selectedGradeId]);
 
   const handleGenerateClick = async () => {
     if (!readiness.isReady || isGenerating) return;
@@ -97,6 +58,11 @@ const Schedules = () => {
 
     try {
       const result = await requestScheduleGeneration(schedulerPayload);
+      saveGeneratedTimetable({
+        result,
+        school: schedulerPayload.school,
+        teachers: schedulerPayload.teachers,
+      });
       setApiResult(result);
       toast.success("Schedule generated.");
     } catch (error) {
@@ -302,6 +268,13 @@ const Schedules = () => {
               <div className="rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
                 {apiResult.message}
               </div>
+              <Link
+                to="/timetable"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                <FaCalendarAlt />
+                View Timetable
+              </Link>
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 {Object.entries(apiResult.metadata || {}).map(
                   ([label, value]) => (
@@ -323,104 +296,6 @@ const Schedules = () => {
           ) : (
             <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
               {apiError}
-            </div>
-          )}
-        </section>
-      )}
-
-      {apiResult?.schedule && (
-        <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800">
-                Generated Timetable
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                View one grade and one day at a time.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">
-                  Grade
-                </label>
-                <select
-                  value={selectedGradeId}
-                  onChange={(event) => setSelectedGradeId(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {gradeOptions.map((grade) => (
-                    <option key={grade.id} value={grade.id}>
-                      {grade.name || `Grade ${grade.id}`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-bold uppercase text-gray-500">
-                  Day
-                </label>
-                <select
-                  value={selectedDay}
-                  onChange={(event) => setSelectedDay(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {dayOptions.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead>
-                <tr className="text-left text-xs font-bold uppercase text-gray-500">
-                  <th className="py-3 pr-4">Period</th>
-                  <th className="py-3 pr-4">Subject</th>
-                  <th className="py-3 pr-4">Teacher</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {selectedLessons.map(({ period, lesson }) => (
-                  <tr key={period} className="text-sm text-gray-700">
-                    <td className="py-3 pr-4 font-semibold text-gray-900">
-                      {period}
-                    </td>
-                    <td className="py-3 pr-4">
-                      {lesson ? (
-                        <span className="font-medium text-gray-900">
-                          {lesson.subject}
-                        </span>
-                      ) : (
-                        <span className="text-red-600">Empty</span>
-                      )}
-                    </td>
-                    <td className="py-3 pr-4">
-                      {lesson?.teacherName || "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {apiResult.unplaced?.length > 0 && (
-            <div className="mt-5 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-              {apiResult.unplaced.length} lesson
-              {apiResult.unplaced.length === 1 ? "" : "s"} could not be placed
-              by the preview scheduler.
-            </div>
-          )}
-
-          {apiResult.unplaced?.length === 0 && (
-            <div className="mt-5 rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-              All requested lessons were placed by the preview scheduler.
             </div>
           )}
         </section>

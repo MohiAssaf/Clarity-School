@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard";
 import Teachers from "@/pages/Teachers";
 import Schedules from "@/pages/Schedules";
+import Timetable from "@/pages/Timetable";
 import Assignments from "@/pages/Assignments";
 import NotFound from "@/pages/NotFound";
 import Home from "@/pages/Home";
@@ -35,6 +36,7 @@ function App() {
             <Route path="/teachers" element={<Teachers />} />
             <Route path="/assignments" element={<Assignments />} />
             <Route path="/schedules" element={<Schedules />} />
+            <Route path="/timetable" element={<Timetable />} />
             <Route path="/subjects" element={<Subjects />} />
           </Route>
 
