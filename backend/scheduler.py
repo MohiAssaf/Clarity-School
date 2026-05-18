@@ -74,6 +74,13 @@ def initialize_schedule(days, grades, periods_per_day):
 
 def expand_assignments(assignments):
     lessons = []
+    teacher_loads = {}
+
+    for assignment in assignments:
+        teacher_id = assignment["teacherId"]
+        teacher_loads[teacher_id] = (
+            teacher_loads.get(teacher_id, 0) + assignment["frequency"]
+        )
 
     for assignment_index, assignment in enumerate(assignments):
         for occurrence in range(1, assignment["frequency"] + 1):
@@ -91,7 +98,11 @@ def expand_assignments(assignments):
 
     return sorted(
         lessons,
-        key=lambda lesson: (lesson["occurrence"], lesson["assignmentIndex"]),
+        key=lambda lesson: (
+            -teacher_loads[lesson["teacherId"]],
+            lesson["occurrence"],
+            lesson["assignmentIndex"],
+        ),
     )
 
 
