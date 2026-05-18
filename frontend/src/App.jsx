@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import PageLoader from "@/components/common/PageLoader";
 import RequireQues from "@/routes/RequireQues";
 import { QuestionnaireProvider } from "@/context/QuestionnaireContext";
 import { ToastContainer } from "react-toastify";
@@ -13,12 +14,6 @@ const Schedules = lazy(() => import("@/pages/Schedules"));
 const Subjects = lazy(() => import("@/pages/Subjects"));
 const Teachers = lazy(() => import("@/pages/Teachers"));
 const Timetable = lazy(() => import("@/pages/Timetable"));
-
-const PageLoader = () => (
-  <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 text-sm font-semibold text-gray-600">
-    Loading...
-  </div>
-);
 
 function App() {
   return (
