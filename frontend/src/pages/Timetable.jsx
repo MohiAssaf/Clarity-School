@@ -9,11 +9,7 @@ import {
 } from "react-icons/fa";
 import Layout from "@/components/common/Layout";
 import { loadGeneratedTimetable } from "@/utils/generatedTimetableStorage";
-import {
-  buildGradeCsvRows,
-  buildTeacherCsvRows,
-  downloadTimetableCsv,
-} from "@/utils/timetableExport";
+import { exportTimetable } from "@/utils/timetableExport";
 import {
   formatLabel,
   getSelectedGradeLessons,
@@ -90,6 +86,10 @@ const Timetable = () => {
   const [selectedDay, setSelectedDay] = useState(
     () => timetable?.school?.days?.[0] || ""
   );
+  const [exportScope, setExportScope] = useState("current");
+  const [exportDayRange, setExportDayRange] = useState("current");
+  const [exportFormat, setExportFormat] = useState("docx");
+  const [isExporting, setIsExporting] = useState(false);
 
   const result = timetable?.result;
   const school = timetable?.school || { grades: [], days: [], periodsPerDay: {} };
@@ -123,33 +123,25 @@ const Timetable = () => {
     [result, selectedDay, selectedTeacherId, selectedPeriods, school.grades]
   );
 
-  const handleExportCsv = () => {
-    if (viewMode === "grade") {
-      const gradeName = selectedGrade?.name || "Selected Grade";
+  const handleExport = async () => {
+    if (isExporting) return;
 
-      downloadTimetableCsv({
-        filename: `${gradeName}-${selectedDay}-timetable`,
-        headers: ["Period", "Day", "Grade", "Subject", "Teacher"],
-        rows: buildGradeCsvRows({
-          lessons: gradeLessons,
-          day: selectedDay,
-          gradeName,
-        }),
+    setIsExporting(true);
+
+    try {
+      await exportTimetable({
+        timetable,
+        scope: exportScope,
+        dayRange: exportDayRange,
+        format: exportFormat,
+        viewMode,
+        selectedDay,
+        selectedGradeId,
+        selectedTeacherId,
       });
-      return;
+    } finally {
+      setIsExporting(false);
     }
-
-    const teacherName = selectedTeacher?.name || "Selected Teacher";
-
-    downloadTimetableCsv({
-      filename: `${teacherName}-${selectedDay}-timetable`,
-      headers: ["Period", "Day", "Teacher", "Grade", "Subject"],
-      rows: buildTeacherCsvRows({
-        lessons: teacherLessons,
-        day: selectedDay,
-        teacherName,
-      }),
-    });
   };
 
   if (!timetable) {
@@ -192,14 +184,6 @@ const Timetable = () => {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={handleExportCsv}
-            className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700"
-          >
-            <FaDownload />
-            Export CSV
-          </button>
-          <button
-            type="button"
             onClick={() => setViewMode("grade")}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold ${
               viewMode === "grade"
@@ -224,6 +208,65 @@ const Timetable = () => {
           </button>
         </div>
       </div>
+
+      <section className="mb-8 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase text-gray-500">
+              Export
+            </label>
+            <select
+              value={exportScope}
+              onChange={(event) => setExportScope(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="current">Current view</option>
+              <option value="allGrades">All grades</option>
+              <option value="allTeachers">All teachers</option>
+              <option value="everything">Everything</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase text-gray-500">
+              Days
+            </label>
+            <select
+              value={exportDayRange}
+              onChange={(event) => setExportDayRange(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="current">Current day</option>
+              <option value="all">All days</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase text-gray-500">
+              Format
+            </label>
+            <select
+              value={exportFormat}
+              onChange={(event) => setExportFormat(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="docx">Word (.docx)</option>
+              <option value="pdf">PDF</option>
+              <option value="excel">Excel (.xls)</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            <FaDownload />
+            {isExporting ? "Exporting..." : "Export"}
+          </button>
+        </div>
+      </section>
 
       <section className="mb-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {Object.entries(result.metadata || {}).map(([label, value]) => (
