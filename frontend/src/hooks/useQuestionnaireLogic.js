@@ -26,6 +26,7 @@ const useQuestionnaireLogic = () => {
   const navigate = useNavigate();
   const { quesData, completeQuestionnaire } = useQuestionnaire();
   const canExitSetup = Boolean(quesData);
+  const isEditingSetup = Boolean(quesData);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [gradesCount, setGradesCount] = useState(1);
@@ -174,7 +175,11 @@ const useQuestionnaireLogic = () => {
 
     completeQuestionnaire(data);
     navigate("/dashboard");
-    toast.success("Successfully completed Questionnaire!");
+    toast.success(
+      isEditingSetup
+        ? "School setup updated."
+        : "Successfully completed Questionnaire!"
+    );
   };
 
   return {
@@ -190,6 +195,7 @@ const useQuestionnaireLogic = () => {
     handleExitSetup,
     handleComplete,
     canExitSetup,
+    isEditingSetup,
     allDays,
     minGrades: MIN_GRADES,
     maxGrades: MAX_GRADES,

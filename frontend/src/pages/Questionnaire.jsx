@@ -20,6 +20,7 @@ const Questionnaire = () => {
     handleNext,
     handleComplete,
     canExitSetup,
+    isEditingSetup,
     allDays,
     minGrades,
     maxGrades,
@@ -127,7 +128,7 @@ const Questionnaire = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2 }}
             >
-              Complete
+              {isEditingSetup ? "Save Changes" : "Complete"}
             </motion.button>
           )}
         </div>
