@@ -1,16 +1,24 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Dashboard from "@/pages/Dashboard";
-import Teachers from "@/pages/Teachers";
-import Schedules from "@/pages/Schedules";
-import Timetable from "@/pages/Timetable";
-import Assignments from "@/pages/Assignments";
-import NotFound from "@/pages/NotFound";
-import Home from "@/pages/Home";
-import Subjects from "@/pages/Subjects";
 import RequireQues from "@/routes/RequireQues";
-import Questionnaire from "@/pages/Questionnaire";
 import { QuestionnaireProvider } from "@/context/QuestionnaireContext";
 import { ToastContainer } from "react-toastify";
+
+const Assignments = lazy(() => import("@/pages/Assignments"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Home = lazy(() => import("@/pages/Home"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Questionnaire = lazy(() => import("@/pages/Questionnaire"));
+const Schedules = lazy(() => import("@/pages/Schedules"));
+const Subjects = lazy(() => import("@/pages/Subjects"));
+const Teachers = lazy(() => import("@/pages/Teachers"));
+const Timetable = lazy(() => import("@/pages/Timetable"));
+
+const PageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 text-sm font-semibold text-gray-600">
+    Loading...
+  </div>
+);
 
 function App() {
   return (
@@ -27,21 +35,23 @@ function App() {
           draggable
           pauseOnHover
         />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/questionnaire" element={<Questionnaire />} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/questionnaire" element={<Questionnaire />} />
 
-          <Route element={<RequireQues />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/teachers" element={<Teachers />} />
-            <Route path="/assignments" element={<Assignments />} />
-            <Route path="/schedules" element={<Schedules />} />
-            <Route path="/timetable" element={<Timetable />} />
-            <Route path="/subjects" element={<Subjects />} />
-          </Route>
+            <Route element={<RequireQues />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/teachers" element={<Teachers />} />
+              <Route path="/assignments" element={<Assignments />} />
+              <Route path="/schedules" element={<Schedules />} />
+              <Route path="/timetable" element={<Timetable />} />
+              <Route path="/subjects" element={<Subjects />} />
+            </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </Router>
     </QuestionnaireProvider>
   );
