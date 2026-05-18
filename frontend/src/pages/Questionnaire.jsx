@@ -4,6 +4,7 @@ import Step1_Grades from "@/components/questionnaire/Step1_Grades";
 import Step2_Days from "@/components/questionnaire/Step2_Days";
 import Step3_Periods from "@/components/questionnaire/Step3_Periods";
 import HeroIcons from "@/components/home/HeroIcons";
+import { FaArrowLeft } from "react-icons/fa";
 
 const Questionnaire = () => {
   const {
@@ -15,8 +16,10 @@ const Questionnaire = () => {
     periodsPerDay,
     handlePeriodChange,
     handleBack,
+    handleExitSetup,
     handleNext,
     handleComplete,
+    canExitSetup,
     allDays,
     minGrades,
     maxGrades,
@@ -62,6 +65,17 @@ const Questionnaire = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <HeroIcons />
 
+      {canExitSetup && (
+        <button
+          type="button"
+          onClick={handleExitSetup}
+          className="cursor-pointer absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white/90 px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors duration-200 hover:bg-gray-100 sm:left-6 sm:top-6"
+        >
+          <FaArrowLeft />
+          Back to Dashboard
+        </button>
+      )}
+
       <motion.div
         className="relative z-10 w-full max-w-lg mx-auto rounded-xl shadow-2xl p-8"
         initial={{ y: "100vh", opacity: 0 }}
@@ -69,9 +83,11 @@ const Questionnaire = () => {
         exit={{ y: "100vh", opacity: 0 }}
         transition={{ type: "spring", stiffness: 120, damping: 20 }}
       >
-        <h1 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
-          School Setup
-        </h1>
+        <div className="mb-6 flex flex-col gap-4">
+          <h1 className="text-3xl font-extrabold text-gray-800 text-center">
+            School Setup
+          </h1>
+        </div>
 
         <div className="relative">
           <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>

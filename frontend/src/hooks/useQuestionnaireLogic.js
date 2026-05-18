@@ -25,6 +25,7 @@ const MAX_PERIODS_PER_DAY = 12;
 const useQuestionnaireLogic = () => {
   const navigate = useNavigate();
   const { quesData, completeQuestionnaire } = useQuestionnaire();
+  const canExitSetup = Boolean(quesData);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [gradesCount, setGradesCount] = useState(1);
@@ -140,6 +141,12 @@ const useQuestionnaireLogic = () => {
 
   const handleBack = () => setCurrentStep((prev) => prev - 1);
 
+  const handleExitSetup = () => {
+    if (!canExitSetup) return;
+
+    navigate("/dashboard");
+  };
+
   const handleComplete = () => {
     if (!validateGradesCount() || !validateDays() || !validatePeriods()) return;
 
@@ -180,7 +187,9 @@ const useQuestionnaireLogic = () => {
     handlePeriodChange,
     handleNext,
     handleBack,
+    handleExitSetup,
     handleComplete,
+    canExitSetup,
     allDays,
     minGrades: MIN_GRADES,
     maxGrades: MAX_GRADES,
